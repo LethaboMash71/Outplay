@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop — OUTPLAY</title>
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    .page-hero {
+      padding: 10rem 4rem 4rem;
+      background: var(--mid);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::after {
+      content: 'SHOP';
+      position: absolute;
+      right: -2rem; top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18vw;
+      color: rgba(255,255,255,0.03);
+      line-height: 1;
+      pointer-events: none;
+    }
+    .page-hero-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.4em;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.2s forwards;
+    }
+    .page-hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 9vw, 9rem);
+      line-height: 0.9;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.4s forwards;
+    }
+    .page-hero-title .accent { color: var(--yellow); }
+    .page-hero-sub {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 1rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.05em;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.6s forwards;
+    }
+
+    /* FILTER BAR */
+    .filter-bar {
+      padding: 1.5rem 4rem;
+      background: var(--dark);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 72px;
+      z-index: 50;
+    }
+    .filter-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      margin-right: 0.5rem;
+    }
+    .filter-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.6);
+      padding: 0.45rem 1.1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: none;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+    .filter-count {
+      margin-left: auto;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* GRID */
+    .shop-grid-wrap { padding: 3rem 4rem 6rem; }
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5px;
+    }
+    .product-card { position: relative; background: var(--mid); overflow: hidden; cursor: none; }
+    .product-img-wrap { aspect-ratio: 1; overflow: hidden; position: relative; }
+    .product-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94); display: block; }
+    .product-card:hover .product-img-wrap img { transform: scale(1.07); }
+    .product-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, transparent 55%); opacity: 0; transition: opacity 0.4s; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; }
+    .product-card:hover .product-overlay { opacity: 1; }
+    .product-sizes { display: flex; gap: 0.4rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+    .size-chip { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--black); background: var(--yellow); padding: 0.25rem 0.55rem; cursor: none; border: none; transition: background 0.15s; }
+    .size-chip:hover, .size-chip.selected { background: var(--cyan); }
+    .add-to-cart-btn { background: var(--yellow); color: var(--black); border: none; padding: 0.8rem; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.1em; width: 100%; cursor: none; transition: background 0.2s; }
+    .add-to-cart-btn:hover { background: var(--cyan); }
+    .product-info { padding: 1.2rem; border-top: 1px solid rgba(255,255,255,0.06); }
+    .product-info-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+    .product-name { font-weight: 700; font-size: 0.92rem; }
+    .product-price { font-family: 'DM Mono', monospace; font-size: 0.88rem; color: var(--yellow); }
+    .product-desc { font-size: 0.8rem; color: rgba(255,255,255,0.4); line-height: 1.5; }
+    .product-tag { position: absolute; top: 1rem; left: 1rem; background: var(--red); color: white; font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.15em; padding: 0.3rem 0.65rem; text-transform: uppercase; z-index: 2; }
+    .product-tag.new { background: var(--cyan); color: var(--black); }
+
+    /* SIZING GUIDE */
+    .sizing-section {
+      background: var(--mid);
+      padding: 5rem 4rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .sizing-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; margin-bottom: 2rem; }
+    .sizing-title .accent { color: var(--yellow); }
+    .sizing-table { width: 100%; border-collapse: collapse; font-family: 'DM Mono', monospace; font-size: 0.75rem; }
+    .sizing-table th { background: var(--yellow); color: var(--black); padding: 0.8rem 1.2rem; text-align: left; letter-spacing: 0.1em; }
+    .sizing-table td { padding: 0.8rem 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); }
+    .sizing-table tr:hover td { color: var(--white); background: rgba(255,255,255,0.03); }
+
+    .no-results {
+      text-align: center;
+      padding: 6rem 2rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: rgba(255,255,255,0.15);
+    }
+
+    @media(max-width:900px){
+      .page-hero{padding:8rem 1.5rem 3rem;}
+      .filter-bar{padding:1.2rem 1.5rem;}
+      .shop-grid-wrap{padding:2rem 1.5rem 4rem;}
+      .shop-grid{grid-template-columns:repeat(2,1fr);}
+      .sizing-section{padding:3rem 1.5rem;}
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">OUTPLAY</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="nav-cart" onclick="openCart()">CART <span class="cart-count" id="cartCount">0</span></button>
+    </div>
+  </nav>
+
+  <div class="marquee-wrapper">
+    <div class="marquee-track">
+      <span>Free delivery on orders over R750</span><span>★ Drop 001 — White, Red & Black</span><span>★ 100% Cotton</span><span>★ Proudly South African 🇿🇦</span>
+      <span>★ Free delivery on orders over R750</span><span>★ Drop 001 — White, Red & Black</span><span>★ 100% Cotton</span><span>★ Proudly South African 🇿🇦</span>
+      <span>★ Free delivery on orders over R750</span><span>★ Drop 001 — White, Red & Black</span><span>★ 100% Cotton</span><span>★ Proudly South African 🇿🇦</span>
+    </div>
+  </div>
+
+  <div class="page-hero">
+    <p class="page-hero-eyebrow">Drop 001</p>
+    <h1 class="page-hero-title">THE <span class="accent">SHOP</span></h1>
+    <p class="page-hero-sub">All pieces · Limited stock · South Africa</p>
+  </div>
+
+  <div class="filter-bar">
+    <span class="filter-label">Filter:</span>
+    <button class="filter-btn active" data-filter="all" onclick="filterProducts('all', this)">All</button>
+    <button class="filter-btn" data-filter="white" onclick="filterProducts('white', this)">White</button>
+    <button class="filter-btn" data-filter="red" onclick="filterProducts('red', this)">Red</button>
+    <button class="filter-btn" data-filter="black" onclick="filterProducts('black', this)">Black</button>
+    <button class="filter-btn" data-filter="deal" onclick="filterProducts('deal', this)">Best Value</button>
+    <span class="filter-count" id="filterCount">4 Products</span>
+  </div>
+
+  <div class="shop-grid-wrap">
+    <div class="shop-grid" id="shopGrid"></div>
+  </div>
+
+  <div class="sizing-section">
+    <h2 class="sizing-title reveal">SIZE <span class="accent">GUIDE</span></h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:1.5rem;font-family:'DM Mono',monospace;letter-spacing:0.05em">All measurements in centimetres. When in doubt, size up.</p>
+    <div style="overflow-x:auto">
+      <table class="sizing-table">
+        <thead>
+          <tr>
+            <th>Size</th>
+            <th>Chest (cm)</th>
+            <th>Length (cm)</th>
+            <th>Shoulder (cm)</th>
+            <th>Fits</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>XS</td><td>86–91</td><td>68</td><td>42</td><td>Extra Small</td></tr>
+          <tr><td>S</td><td>91–96</td><td>70</td><td>44</td><td>Small</td></tr>
+          <tr><td>M</td><td>96–101</td><td>72</td><td>46</td><td>Medium</td></tr>
+          <tr><td>L</td><td>101–106</td><td>74</td><td>48</td><td>Large</td></tr>
+          <tr><td>XL</td><td>106–111</td><td>76</td><td>50</td><td>Extra Large</td></tr>
+          <tr><td>2XL</td><td>111–116</td><td>78</td><td>52</td><td>2X Large</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <div><div class="footer-logo">OUTPLAY</div><p class="footer-tagline">Play different.<br>Wear it loud.<br>Proudly South African 🇿🇦</p></div>
+      <div>
+        <div class="footer-col-title">Shop</div>
+        <ul class="footer-links">
+          <li><a href="shop.html">All Products</a></li>
+          <li><a href="shop.html">White Tee</a></li>
+          <li><a href="shop.html">Red Tee</a></li>
+          <li><a href="shop.html">Black Tee</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Info</div>
+        <ul class="footer-links">
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="#">Sizing Guide</a></li>
+          <li><a href="#">Returns</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Follow</div>
+        <ul class="footer-links">
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">TikTok</a></li>
+          <li><a href="#">Twitter / X</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2025 OUTPLAY. All rights reserved. South Africa.</span>
+      <div class="social-links"><a href="#" class="social-link">IG</a><a href="#" class="social-link">TK</a><a href="#" class="social-link">X</a></div>
+    </div>
+  </footer>
+
+  <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header"><h2>YOUR CART</h2><button class="cart-close" onclick="closeCart()">✕</button></div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total"><span>TOTAL</span><span id="cartTotal">R0</span></div>
+      <button class="checkout-btn" onclick="checkout()">CHECKOUT →</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    const selectedSizes = {};
+    let currentFilter = 'all';
+
+    function renderShop(filter) {
+      const grid = document.getElementById('shopGrid');
+      grid.innerHTML = '';
+      const filtered = filter === 'all' ? PRODUCTS : PRODUCTS.filter(p => {
+        if (filter === 'deal') return p.tag === 'deal';
+        return p.color === filter;
+      });
+      document.getElementById('filterCount').textContent = `${filtered.length} Product${filtered.length!==1?'s':''}`;
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="no-results" style="grid-column:1/-1">NO PRODUCTS FOUND</div>';
+        return;
+      }
+      filtered.forEach((p, i) => {
+        const card = document.createElement('div');
+        card.className = 'product-card reveal';
+        card.style.transitionDelay = `${i*0.07}s`;
+        card.innerHTML = `
+          ${p.tag ? `<div class="product-tag ${p.tag==='new'?'new':''}">${p.tagLabel}</div>` : ''}
+          <div class="product-img-wrap">
+            <img src="${p.images[0]}" alt="${p.name}" loading="lazy"/>
+            <div class="product-overlay">
+              <div class="product-sizes">${p.sizes.map(s=>`<button class="size-chip" onclick="selectSize(event,${p.id},'${s}')" data-size="${s}">${s}</button>`).join('')}</div>
+              <button class="add-to-cart-btn" onclick="quickAdd(${p.id})">ADD TO CART</button>
+            </div>
+          </div>
+          <div class="product-info">
+            <div class="product-info-top">
+              <span class="product-name">${p.name}</span>
+              <span class="product-price">${formatZAR(p.price)}</span>
+            </div>
+            <p class="product-desc">${p.desc}</p>
+          </div>`;
+        grid.appendChild(card);
+      });
+      initReveal();
+      window.reattachCursor?.();
+    }
+
+    function filterProducts(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderShop(filter);
+    }
+
+    function selectSize(e, pid, size) {
+      selectedSizes[pid] = size;
+      e.target.closest('.product-sizes').querySelectorAll('.size-chip').forEach(c => c.classList.toggle('selected', c.dataset.size===size));
+    }
+    function quickAdd(pid) {
+      const p = PRODUCTS.find(x => x.id===pid);
+      addToCart(pid, selectedSizes[pid] || p.sizes[Math.floor(p.sizes.length/2)]);
+    }
+
+    renderShop('all');
+  </script>
+</body>
+</html>
