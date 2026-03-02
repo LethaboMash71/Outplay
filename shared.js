@@ -1,9 +1,8 @@
-// ============================================================
 // OUTPLAY — shared.js
 // Cart state + shared UI logic (cursor, toast, cart sidebar)
 // ============================================================
 
-// ===== PRODUCTS =====
+//PRODUCTS
 const PRODUCTS = [
   {
     id: 1,
@@ -55,7 +54,7 @@ const PRODUCTS = [
   },
 ];
 
-// ===== CART STATE (localStorage) =====
+//CART STATE
 function getCart() {
   try { return JSON.parse(localStorage.getItem('outplay_cart') || '[]'); }
   catch { return []; }
@@ -84,12 +83,12 @@ function removeFromCart(index) {
 function getCartCount() { return getCart().reduce((s,i) => s + i.qty, 0); }
 function getCartTotal() { return getCart().reduce((s,i) => s + i.price * i.qty, 0); }
 
-// ===== FORMAT CURRENCY =====
+//FORMAT CURRENCY
 function formatZAR(amount) {
   return `R${amount.toLocaleString('en-ZA')}`;
 }
 
-// ===== CART UI =====
+// CART UI
 function updateCartUI() {
   const countEl = document.getElementById('cartCount');
   const totalEl = document.getElementById('cartTotal');
@@ -130,7 +129,7 @@ function checkout() {
   showToast('Demo mode — no checkout yet! 🎉');
 }
 
-// ===== TOAST =====
+//TOAST
 function showToast(msg) {
   const toast = document.getElementById('toast');
   if (!toast) return;
@@ -139,7 +138,7 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// ===== CURSOR =====
+//INTERACTIVE CURSOR
 function initCursor() {
   const cursor = document.getElementById('cursor');
   const ring = document.getElementById('cursorRing');
@@ -168,7 +167,7 @@ function initCursor() {
   window.reattachCursor = attachHover;
 }
 
-// ===== SCROLL REVEAL =====
+//SCROLL REVEAL
 function initReveal() {
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
@@ -176,7 +175,7 @@ function initReveal() {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-// ===== ACTIVE NAV =====
+//ACTIVE NAVIGATION
 function initNav() {
   const page = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-links a').forEach(a => {
