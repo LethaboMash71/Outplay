@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — OUTPLAY</title>
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    /* ============ DEMO BANNER ============ */
+    .demo-banner {
+      background: repeating-linear-gradient(
+        -45deg,
+        #1a1a1a,
+        #1a1a1a 10px,
+        #222 10px,
+        #222 20px
+      );
+      border-bottom: 2px solid var(--yellow);
+      padding: 0.75rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      position: sticky;
+      top: 72px;
+      z-index: 99;
+    }
+    .demo-badge {
+      background: var(--yellow);
+      color: var(--black);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.2em;
+      padding: 0.2rem 0.7rem;
+      flex-shrink: 0;
+    }
+    .demo-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.7);
+    }
+    .demo-text strong { color: var(--yellow); }
+
+    /* ============ PAGE LAYOUT ============ */
+    .checkout-wrap {
+      padding-top: 72px;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      align-items: start;
+    }
+
+    /* ============ LEFT — FORM ============ */
+    .checkout-form-col {
+      padding: 3rem 4rem 6rem;
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Stepper */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 3rem;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: default;
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.4);
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .step-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      transition: color 0.3s;
+    }
+    .step.active .step-num { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+    .step.active .step-label { color: var(--yellow); }
+    .step.done .step-num { background: var(--cyan); color: var(--black); border-color: var(--cyan); }
+    .step.done .step-label { color: rgba(255,255,255,0.5); }
+    .step-connector {
+      flex: 1; height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 0 1rem;
+      min-width: 2rem;
+      max-width: 4rem;
+    }
+
+    /* Section blocks */
+    .form-section { display: none; }
+    .form-section.active { display: block; animation: fadeUp 0.4s ease; }
+    .form-section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+    .form-section-title .accent { color: var(--yellow); }
+    .form-section-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .demo-hint {
+      background: rgba(232,255,0,0.1);
+      border: 1px solid rgba(232,255,0,0.25);
+      color: var(--yellow);
+      padding: 0.2rem 0.6rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* Form fields */
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
+    .field-group { margin-bottom: 1.2rem; }
+    .field-label {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      color: rgba(255,255,255,0.38);
+      text-transform: uppercase;
+      margin-bottom: 0.45rem;
+    }
+    .field-input, .field-select {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--white);
+      padding: 0.85rem 1.1rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      appearance: none;
+    }
+    .field-input:focus, .field-select:focus {
+      border-color: var(--yellow);
+      background: rgba(232,255,0,0.03);
+    }
+    .field-input.demo-filled {
+      border-color: rgba(232,255,0,0.3);
+      background: rgba(232,255,0,0.04);
+      color: rgba(255,255,255,0.7);
+    }
+    .field-input::placeholder { color: rgba(255,255,255,0.18); font-style: italic; }
+    .field-select option { background: var(--dark); }
+    .field-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      color: rgba(232,255,0,0.5);
+      margin-top: 0.35rem;
+      letter-spacing: 0.08em;
+    }
+
+    /* SA Provinces */
+    .province-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .province-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.5);
+      padding: 0.5rem 0.4rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      cursor: none;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .province-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
+    .province-btn.selected { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+
+    /* Payment cards */
+    .payment-methods {
+      display: flex;
+      gap: 0.8rem;
+      margin-bottom: 2rem;
+    }
+    .pay-method {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      padding: 1rem;
+      cursor: none;
+      text-align: center;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .pay-method:hover { border-color: rgba(232,255,0,0.3); }
+    .pay-method.selected { border-color: var(--yellow); background: rgba(232,255,0,0.04); }
+    .pay-method.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 0.4rem; right: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--yellow);
+    }
+    .pay-icon { font-size: 1.6rem; margin-bottom: 0.3rem; }
+    .pay-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+    }
+    .pay-method.selected .pay-label { color: var(--yellow); }
+
+    /* Card fields */
+    .card-num-wrap { position: relative; }
+    .card-brand {
+      position: absolute;
+      right: 1rem; top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      opacity: 0.4;
+    }
+    .card-cvv-info {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-family: 'DM Mono', monospace; font-size: 0.58rem;
+      color: rgba(255,255,255,0.3); margin-top: 0.3rem;
+    }
+
+    /* EFT info box */
+    .eft-box {
+      background: rgba(0,245,212,0.06);
+      border: 1px solid rgba(0,245,212,0.2);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .eft-box-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      color: var(--cyan);
+      margin-bottom: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+    .eft-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      letter-spacing: 0.05em;
+    }
+    .eft-row:last-child { border-bottom: none; }
+    .eft-row span:first-child { color: rgba(255,255,255,0.35); }
+    .eft-row span:last-child { color: var(--white); }
+
+    /* Delivery options */
+    .delivery-options { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
+    .delivery-opt {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      padding: 1rem 1.2rem;
+      cursor: none;
+      transition: all 0.2s;
+    }
+    .delivery-opt:hover { border-color: rgba(232,255,0,0.3); }
+    .delivery-opt.selected { border-color: var(--yellow); background: rgba(232,255,0,0.03); }
+    .delivery-opt-left { display: flex; align-items: center; gap: 0.8rem; }
+    .delivery-radio {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+    .delivery-opt.selected .delivery-radio { border-color: var(--yellow); }
+    .delivery-radio-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--yellow);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .delivery-opt.selected .delivery-radio-dot { opacity: 1; }
+    .delivery-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .delivery-eta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+    }
+    .delivery-price {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--yellow);
+    }
+    .delivery-price.free { color: var(--cyan); }
+
+    /* Nav buttons */
+    .form-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .btn-back {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.5);
+      padding: 0.85rem 1.8rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.12em;
+      cursor: none;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+    .btn-next {
+      background: var(--yellow);
+      color: var(--black);
+      border: none;
+      padding: 0.95rem 2.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 0.12em;
+      cursor: none;
+      transition: background 0.2s, transform 0.15s;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .btn-next:hover { background: var(--cyan); transform: translateY(-2px); }
+    .btn-next:disabled { opacity: 0.4; transform: none; cursor: not-allowed; }
+
+    /* Auto-fill button */
+    .autofill-btn {
+      background: rgba(232,255,0,0.1);
+      border: 1px solid rgba(232,255,0,0.25);
+      color: var(--yellow);
+      padding: 0.5rem 1.2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      cursor: none;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .autofill-btn:hover { background: rgba(232,255,0,0.2); }
+
+    /* ============ RIGHT — ORDER SUMMARY ============ */
+    .checkout-summary-col {
+      background: var(--mid);
+      padding: 3rem 2.5rem 4rem;
+      position: sticky;
+      top: 72px;
+      max-height: calc(100vh - 72px);
+      overflow-y: auto;
+      border-left: 1px solid rgba(255,255,255,0.06);
+    }
+    .summary-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 1.5rem;
+      color: rgba(255,255,255,0.7);
+    }
+    .summary-items { margin-bottom: 2rem; }
+    .summary-item {
+      display: flex;
+      gap: 0.9rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-img-wrap { position: relative; flex-shrink: 0; }
+    .summary-img {
+      width: 64px; height: 64px;
+      object-fit: cover;
+    }
+    .summary-qty-badge {
+      position: absolute;
+      top: -6px; right: -6px;
+      background: rgba(255,255,255,0.15);
+      color: var(--white);
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+    }
+    .summary-item-details { flex: 1; }
+    .summary-item-name { font-weight: 700; font-size: 0.88rem; margin-bottom: 0.2rem; }
+    .summary-item-meta { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; }
+    .summary-item-price { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--yellow); text-align: right; flex-shrink: 0; }
+
+    .summary-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: rgba(255,255,255,0.2);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+    }
+
+    .summary-lines { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.2rem; }
+    .summary-line {
+      display: flex; justify-content: space-between;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 0.6rem;
+    }
+    .summary-line.total {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: 0.8rem;
+      padding-top: 0.8rem;
+      margin-bottom: 0;
+    }
+    .summary-line.total span:last-child { color: var(--yellow); }
+    .summary-line .free { color: var(--cyan); }
+
+    .summary-promo {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 0;
+    }
+    .promo-input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-right: none;
+      color: var(--white);
+      padding: 0.7rem 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      outline: none;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: border-color 0.2s;
+    }
+    .promo-input:focus { border-color: rgba(232,255,0,0.3); }
+    .promo-input::placeholder { color: rgba(255,255,255,0.15); text-transform: none; }
+    .promo-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.5);
+      padding: 0.7rem 1.1rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      cursor: none;
+      transition: all 0.2s;
+    }
+    .promo-btn:hover { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+    .promo-success {
+      display: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--cyan);
+      letter-spacing: 0.1em;
+      margin-top: 0.5rem;
+    }
+    .promo-success.show { display: block; }
+
+    .secure-badges {
+      display: flex; align-items: center; justify-content: center;
+      gap: 1rem; margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .secure-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.2);
+      display: flex; align-items: center; gap: 0.3rem;
+      text-transform: uppercase;
+    }
+
+    /* ============ CONFIRMATION SCREEN ============ */
+    .confirmation-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--black);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 4rem 2rem;
+    }
+    .confirmation-screen.show { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .confirm-inner {
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    .confirm-icon {
+      width: 80px; height: 80px;
+      background: var(--yellow);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 2rem;
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .confirm-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 6vw, 5rem);
+      line-height: 0.9;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.3s forwards;
+    }
+    .confirm-title .accent { color: var(--yellow); }
+    .confirm-order-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.5s forwards;
+    }
+    .confirm-body {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.55);
+      max-width: 440px;
+      margin: 0 auto 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.7s forwards;
+    }
+    .confirm-demo-note {
+      background: rgba(232,255,0,0.08);
+      border: 1px solid rgba(232,255,0,0.2);
+      padding: 1.2rem 2rem;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.9s forwards;
+    }
+    .confirm-demo-note p {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      color: rgba(232,255,0,0.7);
+      line-height: 1.7;
+    }
+    .confirm-demo-note strong { color: var(--yellow); }
+    .confirm-summary {
+      background: var(--mid);
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+      text-align: left;
+      opacity: 0;
+      animation: fadeUp 0.6s 1.1s forwards;
+    }
+    .confirm-summary-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .confirm-items { }
+    .confirm-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .confirm-item:last-child { border-bottom: none; }
+    .confirm-item-name { color: rgba(255,255,255,0.7); }
+    .confirm-item-price { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--yellow); }
+    .confirm-total {
+      display: flex; justify-content: space-between;
+      margin-top: 1rem; padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem; letter-spacing: 0.08em;
+    }
+    .confirm-total span:last-child { color: var(--yellow); }
+    .confirm-actions {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.6s 1.3s forwards;
+    }
+
+    /* ============ EMPTY STATE ============ */
+    .checkout-empty {
+      display: none;
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 8rem 2rem;
+    }
+    .checkout-empty.show { display: block; }
+    .checkout-empty-icon { font-size: 4rem; margin-bottom: 1.5rem; }
+    .checkout-empty-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem; color: rgba(255,255,255,0.2); margin-bottom: 1rem;
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media(max-width:900px){
+      .checkout-wrap { grid-template-columns: 1fr; padding-top: 72px; }
+      .checkout-form-col { padding: 2rem 1.5rem 4rem; }
+      .checkout-summary-col { position: static; max-height: none; padding: 2rem 1.5rem; order: -1; border-left: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .field-row { grid-template-columns: 1fr; }
+      .province-grid { grid-template-columns: repeat(3,1fr); }
+      .payment-methods { flex-wrap: wrap; }
+      .demo-banner { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">OUTPLAY</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="nav-cart" onclick="openCart()">CART <span class="cart-count" id="cartCount">0</span></button>
+    </div>
+  </nav>
+
+  <!-- DEMO BANNER -->
+  <div class="demo-banner">
+    <span class="demo-badge">⚠ DEMO MODE</span>
+    <span class="demo-text">This is a demo checkout — <strong>no real payments are processed</strong>. Use the auto-fill button or enter any fake details to test the flow.</span>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="checkout-wrap" id="checkoutWrap">
+
+    <!-- EMPTY STATE -->
+    <div class="checkout-empty" id="checkoutEmpty">
+      <div class="checkout-empty-icon">🛒</div>
+      <div class="checkout-empty-title">YOUR CART IS EMPTY</div>
+      <p style="color:rgba(255,255,255,0.35);margin-bottom:2rem;font-size:0.95rem">Add some items before checking out.</p>
+      <a href="shop.html" class="btn-primary">Browse the Shop →</a>
+    </div>
+
+    <!-- FORM COLUMN -->
+    <div class="checkout-form-col" id="formCol">
+
+      <!-- STEPPER -->
+      <div class="stepper">
+        <div class="step active" id="step1-indicator">
+          <div class="step-num">1</div>
+          <span class="step-label">Delivery</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" id="step2-indicator">
+          <div class="step-num">2</div>
+          <span class="step-label">Shipping</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" id="step3-indicator">
+          <div class="step-num">3</div>
+          <span class="step-label">Payment</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" id="step4-indicator">
+          <div class="step-num">4</div>
+          <span class="step-label">Review</span>
+        </div>
+      </div>
+
+      <!-- ====== STEP 1: DELIVERY ADDRESS ====== -->
+      <div class="form-section active" id="step1">
+        <div class="form-section-title">DELIVERY <span class="accent">ADDRESS</span></div>
+        <div class="form-section-sub">
+          Enter your address below
+          <span class="demo-hint">👋 DEMO — use fake info</span>
+        </div>
+
+        <button class="autofill-btn" onclick="autoFillAddress()">
+          ✨ Auto-fill with demo data
+        </button>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">First Name *</label>
+            <input type="text" class="field-input" id="firstName" placeholder="e.g. Thabo" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Last Name *</label>
+            <input type="text" class="field-input" id="lastName" placeholder="e.g. Dlamini" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Email Address *</label>
+          <input type="email" class="field-input" id="email" placeholder="e.g. thabo@fakeemail.co.za" />
+          <div class="field-hint">📬 Order confirmation will (pretend to) be sent here</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Phone Number *</label>
+          <input type="tel" class="field-input" id="phone" placeholder="e.g. 071 555 0100" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Street Address *</label>
+          <input type="text" class="field-input" id="address" placeholder="e.g. 12 Commissioner Street" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Suburb / Apartment</label>
+          <input type="text" class="field-input" id="suburb" placeholder="e.g. Apt 4B, Sandton" />
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">City *</label>
+            <input type="text" class="field-input" id="city" placeholder="e.g. Johannesburg" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Postal Code *</label>
+            <input type="text" class="field-input" id="postalCode" placeholder="e.g. 2196" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Province *</label>
+          <div class="province-grid" id="provinceGrid">
+            <button class="province-btn" onclick="selectProvince(this, 'Gauteng')">Gauteng</button>
+            <button class="province-btn" onclick="selectProvince(this, 'Western Cape')">W. Cape</button>
+            <button class="province-btn" onclick="selectProvince(this, 'KwaZulu-Natal')">KZN</button>
+            <button class="province-btn" onclick="selectProvince(this, 'Eastern Cape')">E. Cape</button>
+            <button class="province-btn" onclick="selectProvince(this, 'Limpopo')">Limpopo</button>
+            <button class="province-btn" onclick="selectProvince(this, 'Mpumalanga')">Mpuma.</button>
+            <button class="province-btn" onclick="selectProvince(this, 'North West')">NW</button>
+            <button class="province-btn" onclick="selectProvince(this, 'Free State')">Free State</button>
+            <button class="province-btn" onclick="selectProvince(this, 'Northern Cape')">N. Cape</button>
+          </div>
+          <input type="hidden" id="province" value="" />
+        </div>
+
+        <div class="form-nav">
+          <a href="shop.html" class="btn-back" style="text-decoration:none">← Back to Shop</a>
+          <button class="btn-next" onclick="goToStep(2)">Continue to Shipping →</button>
+        </div>
+      </div>
+
+      <!-- ====== STEP 2: SHIPPING METHOD ====== -->
+      <div class="form-section" id="step2">
+        <div class="form-section-title">SHIPPING <span class="accent">METHOD</span></div>
+        <div class="form-section-sub">Choose how you want it delivered <span class="demo-hint">👋 DEMO</span></div>
+
+        <div class="delivery-options" id="deliveryOptions">
+          <!-- Rendered dynamically based on cart total -->
+        </div>
+
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:1.2rem;margin-bottom:1.5rem;">
+          <p style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:rgba(255,255,255,0.4);line-height:1.7;">
+            📍 Delivering to: <span id="deliveryAddressPreview" style="color:rgba(255,255,255,0.7)">—</span>
+          </p>
+        </div>
+
+        <div class="form-nav">
+          <button class="btn-back" onclick="goToStep(1)">← Back</button>
+          <button class="btn-next" onclick="goToStep(3)">Continue to Payment →</button>
+        </div>
+      </div>
+
+      <!-- ====== STEP 3: PAYMENT ====== -->
+      <div class="form-section" id="step3">
+        <div class="form-section-title">PAYMENT <span class="accent">DETAILS</span></div>
+        <div class="form-section-sub">
+          All fields are fake — no real payment is taken
+          <span class="demo-hint">💳 DEMO</span>
+        </div>
+
+        <div class="payment-methods">
+          <div class="pay-method selected" id="pm-card" onclick="selectPayMethod('card')">
+            <div class="pay-icon">💳</div>
+            <div class="pay-label">Card</div>
+          </div>
+          <div class="pay-method" id="pm-eft" onclick="selectPayMethod('eft')">
+            <div class="pay-icon">🏦</div>
+            <div class="pay-label">EFT / Bank</div>
+          </div>
+          <div class="pay-method" id="pm-payflex" onclick="selectPayMethod('payflex')">
+            <div class="pay-icon">✂️</div>
+            <div class="pay-label">PayFlex</div>
+          </div>
+          <div class="pay-method" id="pm-snapscan" onclick="selectPayMethod('snapscan')">
+            <div class="pay-icon">📱</div>
+            <div class="pay-label">SnapScan</div>
+          </div>
+        </div>
+
+        <!-- Card Fields -->
+        <div id="cardFields">
+          <button class="autofill-btn" onclick="autoFillCard()">✨ Auto-fill with demo card</button>
+
+          <div class="field-group">
+            <label class="field-label">Cardholder Name *</label>
+            <input type="text" class="field-input" id="cardName" placeholder="e.g. T DLAMINI" style="text-transform:uppercase" />
+          </div>
+          <div class="field-group card-num-wrap">
+            <label class="field-label">Card Number *</label>
+            <input type="text" class="field-input" id="cardNum" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCardNum(this)" />
+            <span class="card-brand" id="cardBrand">💳</span>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Expiry Date *</label>
+              <input type="text" class="field-input" id="cardExpiry" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">CVV *</label>
+              <input type="text" class="field-input" id="cardCvv" placeholder="123" maxlength="4" />
+              <div class="card-cvv-info">🔒 3 digits on back of card</div>
+            </div>
+          </div>
+          <div class="field-hint" style="margin-top:-0.5rem;margin-bottom:1rem;">
+            ⚠️ Demo mode: enter any numbers — try <strong style="color:var(--yellow)">4242 4242 4242 4242</strong> / 12/28 / 123
+          </div>
+        </div>
+
+        <!-- EFT Fields -->
+        <div id="eftFields" style="display:none">
+          <div class="eft-box">
+            <div class="eft-box-title">Demo Bank Details</div>
+            <div class="eft-row"><span>Bank</span><span>Outplay Bank (Demo)</span></div>
+            <div class="eft-row"><span>Account Name</span><span>OUTPLAY PTY LTD</span></div>
+            <div class="eft-row"><span>Account Number</span><span>123 456 789</span></div>
+            <div class="eft-row"><span>Branch Code</span><span>250655</span></div>
+            <div class="eft-row"><span>Reference</span><span id="eftRef">OP-DEMO-001</span></div>
+          </div>
+          <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:rgba(255,255,255,0.35);line-height:1.7;letter-spacing:0.05em;">
+            In a real store, you'd send the EFT proof to hello@outplay.co.za. For this demo, just click Continue.
+          </p>
+        </div>
+
+        <!-- PayFlex Fields -->
+        <div id="payflexFields" style="display:none">
+          <div class="eft-box" style="border-color:rgba(0,245,212,0.3)">
+            <div class="eft-box-title" style="color:var(--cyan)">✂️ PayFlex — Pay in 4</div>
+            <div class="eft-row"><span>Today</span><span id="pf1">R0</span></div>
+            <div class="eft-row"><span>Week 2</span><span id="pf2">R0</span></div>
+            <div class="eft-row"><span>Week 4</span><span id="pf3">R0</span></div>
+            <div class="eft-row"><span>Week 6</span><span id="pf4">R0</span></div>
+          </div>
+          <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:rgba(255,255,255,0.35);line-height:1.7;letter-spacing:0.05em;">
+            Demo only. In production, you'd be redirected to PayFlex to complete your payment plan.
+          </p>
+        </div>
+
+        <!-- SnapScan Fields -->
+        <div id="snapscanFields" style="display:none">
+          <div style="text-align:center;padding:2rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);margin-bottom:1.5rem;">
+            <div style="font-size:4rem;margin-bottom:1rem">📱</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--yellow);margin-bottom:0.5rem">DEMO QR CODE</div>
+            <div style="background:var(--white);width:120px;height:120px;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#333;font-family:'DM Mono',monospace;padding:0.5rem;text-align:center;">QR CODE PLACEHOLDER (DEMO)</div>
+            <p style="font-family:'DM Mono',monospace;font-size:0.65rem;color:rgba(255,255,255,0.35);letter-spacing:0.05em;">Scan with SnapScan to pay. In real life, you'd scan this QR with the SnapScan app.</p>
+          </div>
+        </div>
+
+        <div class="form-nav">
+          <button class="btn-back" onclick="goToStep(2)">← Back</button>
+          <button class="btn-next" onclick="goToStep(4)">Review Order →</button>
+        </div>
+      </div>
+
+      <!-- ====== STEP 4: REVIEW ====== -->
+      <div class="form-section" id="step4">
+        <div class="form-section-title">REVIEW <span class="accent">ORDER</span></div>
+        <div class="form-section-sub">Check everything before placing <span class="demo-hint">🚀 DEMO</span></div>
+
+        <!-- Review cards -->
+        <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:2rem">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);padding:1.2rem 1.5rem">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.3);text-transform:uppercase">Delivery Address</span>
+              <button onclick="goToStep(1)" style="background:none;border:none;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--cyan);cursor:none;letter-spacing:0.1em;text-transform:uppercase">Edit</button>
+            </div>
+            <div id="reviewAddress" style="font-size:0.9rem;color:rgba(255,255,255,0.65);line-height:1.7"></div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);padding:1.2rem 1.5rem">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.3);text-transform:uppercase">Shipping Method</span>
+              <button onclick="goToStep(2)" style="background:none;border:none;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--cyan);cursor:none;letter-spacing:0.1em;text-transform:uppercase">Edit</button>
+            </div>
+            <div id="reviewShipping" style="font-size:0.9rem;color:rgba(255,255,255,0.65)"></div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);padding:1.2rem 1.5rem">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.3);text-transform:uppercase">Payment</span>
+              <button onclick="goToStep(3)" style="background:none;border:none;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--cyan);cursor:none;letter-spacing:0.1em;text-transform:uppercase">Edit</button>
+            </div>
+            <div id="reviewPayment" style="font-size:0.9rem;color:rgba(255,255,255,0.65)"></div>
+          </div>
+        </div>
+
+        <!-- Terms -->
+        <div style="display:flex;gap:0.8rem;align-items:flex-start;margin-bottom:2rem;padding:1rem;background:rgba(232,255,0,0.04);border:1px solid rgba(232,255,0,0.1)">
+          <input type="checkbox" id="termsCheck" style="margin-top:3px;accent-color:var(--yellow);width:16px;height:16px;flex-shrink:0;cursor:none" />
+          <label for="termsCheck" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:rgba(255,255,255,0.45);line-height:1.6;letter-spacing:0.05em;cursor:none">
+            I understand this is a <strong style="color:var(--yellow)">demo website</strong> and no real purchase is being made. No actual payment will be processed and no items will be shipped.
+          </label>
+        </div>
+
+        <div class="form-nav">
+          <button class="btn-back" onclick="goToStep(3)">← Back</button>
+          <button class="btn-next" id="placeOrderBtn" onclick="placeOrder()" style="background:var(--yellow);font-size:1.1rem;padding:1.1rem 3rem">
+            🎉 PLACE ORDER (DEMO)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDER SUMMARY COLUMN -->
+    <div class="checkout-summary-col" id="summaryCol">
+      <div class="summary-title">ORDER SUMMARY</div>
+
+      <div class="summary-items" id="summaryItems">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="summary-lines">
+        <div class="summary-line"><span>Subtotal</span><span id="summarySubtotal">R0</span></div>
+        <div class="summary-line"><span>Delivery</span><span id="summaryDelivery">—</span></div>
+        <div class="summary-line total"><span>Total</span><span id="summaryTotal">R0</span></div>
+      </div>
+
+      <div class="summary-promo">
+        <input type="text" class="promo-input" id="promoInput" placeholder="Promo code" />
+        <button class="promo-btn" onclick="applyPromo()">APPLY</button>
+      </div>
+      <div class="promo-success" id="promoSuccess">✓ Code applied: 10% off!</div>
+
+      <div class="secure-badges">
+        <span class="secure-badge">🔒 SSL Secure</span>
+        <span class="secure-badge">🛡️ Demo Safe</span>
+        <span class="secure-badge">🇿🇦 SA Local</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER CONFIRMATION OVERLAY -->
+  <div class="confirmation-screen" id="confirmationScreen">
+    <div class="confirm-inner">
+      <div class="confirm-icon">✓</div>
+      <h1 class="confirm-title">ORDER <span class="accent">PLACED!</span></h1>
+      <div class="confirm-order-num" id="confirmOrderNum">Order #OP-DEMO-0000</div>
+      <p class="confirm-body">
+        Yebo! Your (demo) order has been placed successfully. In a real store, you'd receive a confirmation email and your tees would be on their way. 🔥
+      </p>
+      <div class="confirm-demo-note">
+        <p>⚠️ <strong>Remember — this is a demo.</strong> No real payment was processed, no real order was placed, and no items will be shipped. This page exists to demonstrate the full checkout flow.</p>
+      </div>
+      <div class="confirm-summary">
+        <div class="confirm-summary-title">What you (demo) ordered</div>
+        <div class="confirm-items" id="confirmItems"></div>
+        <div class="confirm-total">
+          <span>TOTAL PAID (DEMO)</span>
+          <span id="confirmTotal">R0</span>
+        </div>
+      </div>
+      <div class="confirm-actions">
+        <a href="shop.html" class="btn-primary">Continue Shopping</a>
+        <a href="index.html" class="btn-outline">Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CART SIDEBAR -->
+  <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header"><h2>YOUR CART</h2><button class="cart-close" onclick="closeCart()">✕</button></div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total"><span>TOTAL</span><span id="cartTotal">R0</span></div>
+      <button class="checkout-btn" onclick="window.location.href='checkout.html'">CHECKOUT →</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="shared.js"></script>
+  <script>
+    
+    // STATE
+    
+    let currentStep = 1;
+    let selectedProvince = '';
+    let selectedDelivery = null;
+    let selectedPayMethod = 'card';
+    let promoApplied = false;
+    const PROMO_CODE = 'OUTPLAY10';
+
+    const deliveryOptions = [
+      { id: 'standard', name: 'Standard Delivery', eta: '3–5 business days', price: 99, freeAbove: 750 },
+      { id: 'express', name: 'Express Delivery', eta: '1–2 business days', price: 149, freeAbove: null },
+      { id: 'overnight', name: 'Overnight Courier', eta: 'Next business day', price: 199, freeAbove: null },
+    ];
+
+ 
+    // INIT
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const cart = getCart();
+      if (cart.length === 0) {
+        document.getElementById('checkoutEmpty').classList.add('show');
+        document.getElementById('formCol').style.display = 'none';
+        document.getElementById('summaryCol').style.display = 'none';
+      } else {
+        renderSummary();
+        renderDeliveryOptions();
+      }
+    });
+
+
+    // SUMMARY RENDER
+   
+    function renderSummary() {
+      const cart = getCart();
+      const subtotal = getCartTotal();
+      const deliveryCost = getDeliveryCost();
+      const discount = promoApplied ? Math.round(subtotal * 0.10) : 0;
+      const total = subtotal - discount + (deliveryCost === null ? 0 : deliveryCost);
+
+      // Items
+      const container = document.getElementById('summaryItems');
+      if (cart.length === 0) {
+        container.innerHTML = '<div class="summary-empty">No items in cart</div>';
+      } else {
+        container.innerHTML = cart.map(item => `
+          <div class="summary-item">
+            <div class="summary-img-wrap">
+              <img class="summary-img" src="${item.images[0]}" alt="${item.name}" />
+              <div class="summary-qty-badge">${item.qty}</div>
+            </div>
+            <div class="summary-item-details">
+              <div class="summary-item-name">${item.name}</div>
+              <div class="summary-item-meta">SIZE: ${item.size}</div>
+              ${promoApplied ? `<div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--cyan)">OUTPLAY10 applied</div>` : ''}
+            </div>
+            <div class="summary-item-price">${formatZAR(item.price * item.qty)}</div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('summarySubtotal').textContent = formatZAR(subtotal);
+
+      const delivEl = document.getElementById('summaryDelivery');
+      if (deliveryCost === null) {
+        delivEl.innerHTML = '<span class="free">Select shipping</span>';
+      } else if (deliveryCost === 0) {
+        delivEl.innerHTML = '<span class="free">FREE 🎉</span>';
+      } else {
+        delivEl.textContent = formatZAR(deliveryCost);
+      }
+
+      if (promoApplied) {
+        const linesEl = document.querySelector('.summary-lines');
+        let discountLine = document.getElementById('discountLine');
+        if (!discountLine) {
+          discountLine = document.createElement('div');
+          discountLine.className = 'summary-line';
+          discountLine.id = 'discountLine';
+          discountLine.style.color = 'var(--cyan)';
+          linesEl.insertBefore(discountLine, document.getElementById('summaryDelivery').parentElement.nextSibling);
+        }
+        discountLine.innerHTML = `<span>Promo (OUTPLAY10)</span><span>-${formatZAR(discount)}</span>`;
+      }
+
+      const finalTotal = deliveryCost === null ? subtotal - discount : total;
+      document.getElementById('summaryTotal').textContent = formatZAR(finalTotal);
+    }
+
+    function getDeliveryCost() {
+      if (!selectedDelivery) return null;
+      const opt = deliveryOptions.find(d => d.id === selectedDelivery);
+      if (!opt) return null;
+      const subtotal = getCartTotal();
+      if (opt.freeAbove && subtotal >= opt.freeAbove) return 0;
+      return opt.price;
+    }
+
+    // DELIVERY OPTIONS
+ 
+    function renderDeliveryOptions() {
+      const subtotal = getCartTotal();
+      const container = document.getElementById('deliveryOptions');
+      container.innerHTML = deliveryOptions.map(opt => {
+        const isFree = opt.freeAbove && subtotal >= opt.freeAbove;
+        const priceDisplay = isFree
+          ? '<span class="delivery-price free">FREE 🎉</span>'
+          : `<span class="delivery-price">${formatZAR(opt.price)}</span>`;
+        const isSelected = selectedDelivery === opt.id;
+        return `
+          <div class="delivery-opt ${isSelected ? 'selected' : ''}" onclick="selectDelivery('${opt.id}', this)">
+            <div class="delivery-opt-left">
+              <div class="delivery-radio">
+                <div class="delivery-radio-dot"></div>
+              </div>
+              <div>
+                <div class="delivery-name">${opt.name}</div>
+                <div class="delivery-eta">${opt.eta}</div>
+                ${isFree ? '<div style="font-family:\'DM Mono\',monospace;font-size:0.58rem;color:var(--cyan);margin-top:2px;letter-spacing:0.05em">Your order qualifies for free delivery!</div>' : ''}
+              </div>
+            </div>
+            ${priceDisplay}
+          </div>`;
+      }).join('');
+
+      // Default to standard
+      if (!selectedDelivery) {
+        const firstOpt = container.querySelector('.delivery-opt');
+        if (firstOpt) { firstOpt.classList.add('selected'); selectedDelivery = 'standard'; }
+      }
+      renderSummary();
+    }
+
+    function selectDelivery(id, el) {
+      document.querySelectorAll('.delivery-opt').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedDelivery = id;
+      renderSummary();
+    }
+
+    
+    // PROVINCE SELECT
+    
+    function selectProvince(btn, province) {
+      document.querySelectorAll('.province-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedProvince = province;
+      document.getElementById('province').value = province;
+    }
+
+
+    // PAYMENT METHOD
+    
+    function selectPayMethod(method) {
+      selectedPayMethod = method;
+      ['card','eft','payflex','snapscan'].forEach(m => {
+        document.getElementById(`pm-${m}`)?.classList.remove('selected');
+        document.getElementById(`${m}Fields`)?.style && (document.getElementById(`${m}Fields`).style.display = 'none');
+      });
+      document.getElementById(`pm-${method}`)?.classList.add('selected');
+      document.getElementById(`${method}Fields`) && (document.getElementById(`${method}Fields`).style.display = 'block');
+
+      if (method === 'payflex') {
+        const total = getCartTotal() + (getDeliveryCost() || 0);
+        const each = Math.round(total / 4);
+        ['pf1','pf2','pf3','pf4'].forEach(id => document.getElementById(id).textContent = formatZAR(each));
+      }
+    }
+
+    
+    // CARD FORMATTING
+  
+    function formatCardNum(input) {
+      let v = input.value.replace(/\D/g, '').slice(0, 16);
+      input.value = v.replace(/(.{4})/g, '$1 ').trim();
+      const brand = document.getElementById('cardBrand');
+      if (v.startsWith('4')) brand.textContent = '💳';
+      else if (v.startsWith('5')) brand.textContent = '💳';
+      else if (v.startsWith('3')) brand.textContent = '💳';
+      else brand.textContent = '💳';
+    }
+    function formatExpiry(input) {
+      let v = input.value.replace(/\D/g, '').slice(0,4);
+      if (v.length >= 3) v = v.slice(0,2) + ' / ' + v.slice(2);
+      input.value = v;
+    }
+
+    
+    // STEPPER
+    
+    function goToStep(n) {
+      // Validate current step before advancing
+      if (n > currentStep) {
+        if (!validateStep(currentStep)) return;
+      }
+
+      currentStep = n;
+      document.querySelectorAll('.form-section').forEach((s, i) => s.classList.toggle('active', i + 1 === n));
+
+      // Update stepper indicators
+      for (let i = 1; i <= 4; i++) {
+        const ind = document.getElementById(`step${i}-indicator`);
+        ind.classList.remove('active','done');
+        if (i === n) ind.classList.add('active');
+        else if (i < n) ind.classList.add('done');
+      }
+
+      // Update delivery address preview in step 2
+      if (n === 2) {
+        const name = `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`.trim();
+        const addr = [document.getElementById('address').value, document.getElementById('city').value, selectedProvince].filter(Boolean).join(', ');
+        document.getElementById('deliveryAddressPreview').textContent = name ? `${name} — ${addr || '—'}` : '—';
+        renderDeliveryOptions();
+      }
+
+      // Populate review step
+      if (n === 4) populateReview();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function validateStep(step) {
+      if (step === 1) {
+        const required = ['firstName','lastName','email','phone','address','city','postalCode'];
+        for (const id of required) {
+          const el = document.getElementById(id);
+          if (!el.value.trim()) {
+            el.style.borderColor = 'var(--red)';
+            el.focus();
+            showToast('Please fill in all required fields');
+            setTimeout(() => el.style.borderColor = '', 2000);
+            return false;
+          }
+        }
+        if (!document.getElementById('email').value.includes('@')) {
+          showToast('Please enter a valid email address');
+          return false;
+        }
+        if (!selectedProvince) { showToast('Please select your province'); return false; }
+      }
+      if (step === 3) {
+        if (selectedPayMethod === 'card') {
+          const num = document.getElementById('cardNum').value.replace(/\s/g,'');
+          if (num.length < 12) { showToast('Please enter a valid card number'); return false; }
+          if (!document.getElementById('cardExpiry').value.includes('/')) { showToast('Please enter card expiry'); return false; }
+          if (document.getElementById('cardCvv').value.length < 3) { showToast('Please enter CVV'); return false; }
+        }
+      }
+      if (step === 4) {
+        if (!document.getElementById('termsCheck').checked) {
+          showToast('Please accept the demo terms to continue');
+          return false;
+        }
+      }
+      return true;
+    }
+
+    
+    // REVIEW POPULATE
+    function populateReview() {
+      const f = id => document.getElementById(id)?.value || '';
+      document.getElementById('reviewAddress').innerHTML = `
+        ${f('firstName')} ${f('lastName')}<br>
+        ${f('email')}<br>
+        ${f('phone')}<br>
+        ${f('address')}${f('suburb') ? ', ' + f('suburb') : ''}<br>
+        ${f('city')}, ${selectedProvince}, ${f('postalCode')}
+      `;
+
+      const opt = deliveryOptions.find(d => d.id === selectedDelivery);
+      const cost = getDeliveryCost();
+      document.getElementById('reviewShipping').textContent = opt
+        ? `${opt.name} — ${opt.eta} — ${cost === 0 ? 'FREE' : formatZAR(cost)}`
+        : 'Not selected';
+
+      const methodLabels = { card: '💳 Credit/Debit Card', eft: '🏦 EFT / Bank Transfer', payflex: '✂️ PayFlex (Pay in 4)', snapscan: '📱 SnapScan' };
+      let payText = methodLabels[selectedPayMethod] || selectedPayMethod;
+      if (selectedPayMethod === 'card') {
+        const num = document.getElementById('cardNum').value;
+        if (num) payText += ` ending in ${num.slice(-4)}`;
+      }
+      document.getElementById('reviewPayment').textContent = payText;
+    }
+
+    // PLACE ORDER
+    function placeOrder() {
+      if (!validateStep(4)) return;
+
+      const btn = document.getElementById('placeOrderBtn');
+      btn.textContent = 'Processing...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        const cart = getCart();
+        const subtotal = getCartTotal();
+        const discount = promoApplied ? Math.round(subtotal * 0.10) : 0;
+        const deliveryCost = getDeliveryCost() || 0;
+        const total = subtotal - discount + deliveryCost;
+        const orderNum = 'OP-DEMO-' + Math.floor(1000 + Math.random() * 9000);
+
+        document.getElementById('confirmOrderNum').textContent = `Order #${orderNum}`;
+        document.getElementById('confirmTotal').textContent = formatZAR(total);
+        document.getElementById('confirmItems').innerHTML = cart.map(item => `
+          <div class="confirm-item">
+            <span class="confirm-item-name">${item.name} (${item.size}) × ${item.qty}</span>
+            <span class="confirm-item-price">${formatZAR(item.price * item.qty)}</span>
+          </div>
+        `).join('');
+
+        // Clear cart
+        saveCart([]);
+        updateCartUI();
+
+        // Show confirmation
+        document.getElementById('confirmationScreen').classList.add('show');
+        window.scrollTo({ top: 0 });
+      }, 1800);
+    }
+
+    // AUTO-FILL HELPERS
+    function autoFillAddress() {
+      const data = {
+        firstName: 'Thabo', lastName: 'Dlamini',
+        email: 'thabo.demo@fakeemail.co.za', phone: '071 555 0142',
+        address: '12 Commissioner Street', suburb: 'Marshalltown',
+        city: 'Johannesburg', postalCode: '2107',
+      };
+      Object.entries(data).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) { el.value = val; el.classList.add('demo-filled'); }
+      });
+      // Select Gauteng
+      const gautengBtn = Array.from(document.querySelectorAll('.province-btn')).find(b => b.textContent.trim() === 'Gauteng');
+      if (gautengBtn) selectProvince(gautengBtn, 'Gauteng');
+      showToast('Demo info filled in ✓');
+    }
+
+    function autoFillCard() {
+      document.getElementById('cardName').value = 'T DLAMINI';
+      document.getElementById('cardNum').value = '4242 4242 4242 4242';
+      document.getElementById('cardExpiry').value = '12 / 28';
+      document.getElementById('cardCvv').value = '123';
+      ['cardName','cardNum','cardExpiry','cardCvv'].forEach(id => document.getElementById(id)?.classList.add('demo-filled'));
+      showToast('Demo card filled in ✓');
+    }
+
+    // PROMO CODE
+    function applyPromo() {
+      const code = document.getElementById('promoInput').value.trim().toUpperCase();
+      if (code === PROMO_CODE) {
+        promoApplied = true;
+        document.getElementById('promoSuccess').classList.add('show');
+        document.getElementById('promoInput').value = '';
+        renderSummary();
+        showToast('Promo code applied! 10% off 🎉');
+      } else {
+        showToast('Invalid promo code. Try OUTPLAY10 😉');
+      }
+    }
+  </script>
+</body>
+</html>
