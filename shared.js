@@ -1,6 +1,7 @@
+
 // OUTPLAY — shared.js
 // Cart state + shared UI logic (cursor, toast, cart sidebar)
-// ============================================================
+
 
 //PRODUCTS
 const PRODUCTS = [
@@ -126,7 +127,7 @@ function closeCart() {
 }
 function checkout() {
   if (getCartCount() === 0) { showToast('Your cart is empty!'); return; }
-  showToast('Demo mode — no checkout yet! 🎉');
+  window.location.href = 'checkout.html';
 }
 
 //TOAST
